@@ -1,0 +1,114 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - "**"
+    tags:
+      - "v*"
+      - "[0-9]*.[0-9]*.[0-9]*"
+      - "[0-9]*.[0-9]*.[0-9]*-*"
+  pull_request:
+    branches:
+      - "**"
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.5
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build
+        run: bun run build
+
+      - name: Check package
+        run: bun run check:pkg
+
+      - name: Pack npm package
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          mkdir -p release
+          npm pack --pack-destination release
+
+      - name: Upload npm package artifact
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-package
+          path: release/*.tgz
+          if-no-files-found: error
+          retention-days: 7
+
+  release:
+    name: Publish npm and GitHub Release
+    runs-on: ubuntu-latest
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Download npm package artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: npm-package
+          path: release-artifacts
+
+      - name: Build changelog
+        id: changelog
+        uses: ardalanamini/auto-changelog@v4
+        continue-on-error: true
+        with:
+          mention-authors: false
+          mention-new-contributors: false
+          include-compare-link: false
+          semver: true
+
+      - name: Publish to npm
+        run: npm publish release-artifacts/*.tgz --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create or update release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          generateReleaseNotes: true
+          artifacts: release-artifacts/*.tgz
+          artifactErrorsFailBuild: true
+          allowUpdates: true
+          replacesArtifacts: true
+          removeArtifacts: true
+          token: ${{ secrets.GITHUB_TOKEN }}
