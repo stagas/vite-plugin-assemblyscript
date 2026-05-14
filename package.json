@@ -3,6 +3,7 @@
   "author": "stagas",
   "version": "1.0.0",
   "description": "Use AssemblyScript in Vite projects.",
+  "repository": "https://github.com/stagas/vite-plugin-assemblyscript",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
