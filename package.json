@@ -1,0 +1,49 @@
+{
+  "name": "@stagas/vite-plugin-assemblyscript",
+  "author": "stagas",
+  "version": "1.0.0",
+  "description": "Use AssemblyScript in Vite projects.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "echo ok",
+    "build": "tsdown",
+    "check:pkg": "publint && attw --pack"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.2",
+    "@types/node": "^24.12.4",
+    "publint": "^0.3.21",
+    "tsdown": "^0.22.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.13"
+  },
+  "dependencies": {
+    "assemblyscript": "^0.28.17"
+  },
+  "peerDependencies": {
+    "vite": "*"
+  }
+}
