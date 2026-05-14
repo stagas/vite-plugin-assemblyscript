@@ -84,6 +84,9 @@ jobs:
           name: npm-package
           path: release-artifacts
 
+      - name: List release artifacts
+        run: ls -la release-artifacts
+
       - name: Build changelog
         id: changelog
         uses: ardalanamini/auto-changelog@v4
@@ -95,7 +98,7 @@ jobs:
           semver: true
 
       - name: Publish to npm
-        run: npm publish release-artifacts/*.tgz --access public --provenance
+        run: npm publish ./release-artifacts/*.tgz --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
