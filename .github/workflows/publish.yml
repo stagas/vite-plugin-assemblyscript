@@ -2,8 +2,8 @@ name: Build and Release
 
 on:
   push:
-    branches:
-      - "**"
+    branches-ignore:
+      - main
     tags:
       - "v*"
       - "[0-9]*.[0-9]*.[0-9]*"
